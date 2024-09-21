@@ -16,7 +16,7 @@ import 'base_viewmodel.dart';
 
 class HomeViewModel extends BaseViewModel {
   CurrentHoursResponse response =CurrentHoursResponse();
-  // bool loading =false;
+  bool loading =false;
   void checkIn(
       {required Function(bool) callBack}) async {
     var url = Apis.checkInApi;
@@ -221,33 +221,10 @@ class HomeViewModel extends BaseViewModel {
               textColor: Colors.white,
               fontSize: 16.0);
 
-          // getCurrentHours(callBack: (isSuccess) {});
-          // LoginResponse response = LoginResponse.fromJson(jsonDecode(res));
-          // if (response.success!) {
-          //
-          //   Fluttertoast.showToast(
-          //       msg: 'Successfully',
-          //       toastLength: Toast.LENGTH_SHORT,
-          //       gravity: ToastGravity.SNACKBAR,
-          //       timeInSecForIosWeb: 2,
-          //       backgroundColor: Colors.red,
-          //       textColor: Colors.white,
-          //       fontSize: 16.0);
-          //   callBack(true);
-          // } else {
-          //   Fluttertoast.showToast(
-          //       msg: "Invalid Email",
-          //       toastLength: Toast.LENGTH_SHORT,
-          //       gravity: ToastGravity.SNACKBAR,
-          //       timeInSecForIosWeb: 2,
-          //       backgroundColor: Colors.red,
-          //       textColor: Colors.white,
-          //       fontSize: 16.0);
-          // }
         }
         else {
           Fluttertoast.showToast(
-              msg: "Invalid login, Please login again",
+              msg: "Please checkIn First",
               toastLength: Toast.LENGTH_SHORT,
               gravity: ToastGravity.SNACKBAR,
               timeInSecForIosWeb: 2,
@@ -262,12 +239,12 @@ class HomeViewModel extends BaseViewModel {
   Future<void> getCurrentHours(
       {required Function(bool) callBack}) async {
 
-
+    loading =true;
+    notifyListeners();
     var url = Apis.currentHourApi;
 
-    var helper = ApiProvider(navigate.currentContext, url, {});
-    await helper
-        .getApiData(
+    var helper = await ApiProvider(navigate.currentContext, url, {});
+    await helper.getApiData(
     ).then(
           (res) async {
 
@@ -290,6 +267,7 @@ class HomeViewModel extends BaseViewModel {
         }
       },
     );
+    loading =false;
 
     notifyListeners();
   }

@@ -26,18 +26,11 @@ class ApiProvider {
     try {
       print("=======wwww:${Apis.baseUrl + url}=======");
 
-      // if (await checkInternetConnection()) {
-      // if (showLoader) showCustomLoader();
-      // var headers = {
-      //   'Authorization': '••••••',
-      //   'Cookie': 'XSRF-TOKEN=eyJpdiI6ImFGQzRXbjBwb1F1OEVpdGRvRWVhdFE9PSIsInZhbHVlIjoibm1DK21MWXlXb1RzbFJ5alp6THlKb1ZlS0RVcGxPc2g2ZE1hMjU2Zk9PYUczMEFCTFhTeTN2dWhabTlUNytMbUw4SENReHUzWUxVZzFJaDM1MU04dytOYmYxQlRaaUhxWE9SbzA1M0pPQXdpYkxBRmpHajBjVWcxT3lmblU1MkgiLCJtYWMiOiIwMGE3NTQ5ODViZDA5MTY4YmNkMDYwMjdlMWQ0N2YzZDJmMzRlYmJmZTg3MmNlMzRkZGJiZGYwN2VkODc4MDYwIiwidGFnIjoiIn0%3D; laravel_session=eyJpdiI6IjJheVJTNG1uN0J3V2dJaC95WERHd0E9PSIsInZhbHVlIjoiVmNiYW93M3VEclFSWWRvL1Y3MUJiY3dLV2pTa3d4M3dKMzBMTFdvd09Yd2VxYjhmc0JqVmViTG9sR3NPdTJ4ZW9IVHZsbGRDK2NrbG81aFh5MHdGNWxOVEZEejNWNXd0SXhQcVVKejZKZ0ZTQUxpQmJEWm9ySEdhK0JXd1FpVTgiLCJtYWMiOiI1NmExMWQ3ZGM4OWYwOTRjMmIzODlkZjY3Y2VjMTlkNDA0MjQ3ZWZiZDY2OThiNGFiZGY5MGE3YWVkNzM0YTQ2IiwidGFnIjoiIn0%3D'
-      // };
       var headers =  await getApiHeaders2();
         var request = http.Request('GET', Uri.parse(Apis.baseUrl + url));
         request.headers.addAll(headers);
         http.StreamedResponse response = await request.send();
         EasyLoading.dismiss();
-
         debugPrint("=====response.statusCode: ${response.statusCode}=======");
 
         if (response.statusCode == 200) {
@@ -147,19 +140,20 @@ class ApiProvider {
   }
 
   Future postApiData(
-      {isAuth = true,
+      {
+
+        isAuth = true,
       bool showLoader = true,
       bool showSuccess = true,
       String successMsg = ""}) async {
     try {
 
-      print("=======${Apis.baseUrl + url}=======");
+      debugPrint("=======${Apis.baseUrl + url}=======");
 
-      // if (await checkInternetConnection()) {
         if (showLoader) showCustomLoader();
-        var headers = await getApiHeaders(isAuth);
+        var headers = await getApiHeaders();
         var request = http.Request('POST', Uri.parse(Apis.baseUrl + url));
-        request.body = json.encode(bodyData);
+         request.body = json.encode(bodyData);
         request.headers.addAll(headers);
         http.StreamedResponse response = await request.send();
       print("=======statusCode:${response.statusCode}=======");
@@ -171,102 +165,16 @@ class ApiProvider {
               msg: successMsg,
             ).show();
           }
-
-          //TODO:: show success
-          // var message =
-          //     jsonDecode(await response.stream.bytesToString())['message'];
-          // FeedbackNotification().feedback(
-          //   context,
-          //   genericFeedbackStyle(
-          //     "Success", //Empty
-          //     message,
-          //     success,
-          //     true,
-          //   ),
-          // );
-
-          // var success =
-          //     jsonDecode(await response.stream.bytesToString())['success'];
-          // var error =
-          //     jsonDecode(await response.stream.bytesToString())['error'];
-          // var message =
-          //     jsonDecode(await response.stream.bytesToString())['message'];
-          //
-          // if (success) {
           return await response.stream.bytesToString();
         }
-        // else if (error) {
-        //     FeedbackNotification().feedback(
-        //       context,
-        //       genericFeedbackStyle(
-        //         Languages.of(context)?.somethingWrong,
-        //         message,
-        //         something_went_wrong_image,
-        //       ),
-        //     );
-        //   }
-        //}
-        else if (response.statusCode == 401) {
-          //TODO:: show dialog
-          // FeedbackNotification().feedback(
-          //   context,
-          //   genericFeedbackStyle(
-          //     Languages.of(context)?.unauthorized,
-          //     Languages.of(context)?.sessionExpired,
-          //     alert,
-          //     true,
-          //   ),
-          // );
-        } else {
-          var message =
-              jsonDecode(await response.stream.bytesToString())['message'];
+        else {
+          EasyLoading.dismiss();
 
-          if (message != null && message.toString().isNotEmpty) {
-            //TODO:: show dialog
-            // FeedbackNotification().feedback(
-            //   context,
-            //   genericFeedbackStyle(
-            //     Languages.of(context)?.somethingWrong,
-            //     message,
-            //     something_went_wrong_image,
-            //   ),
-            // );
-          } else {
-            //TODO:: show dialog
-            // FeedbackNotification().feedback(
-            //   context,
-            //   genericFeedbackStyle(
-            //     Languages.of(context)?.somethingWrong,
-            //     response.reasonPhrase,
-            //     something_went_wrong_image,
-            //   ),
-            // );
-          }
         }
-      // }
-      // else {
-      //   //TODO:: show dialog
-      //   // FeedbackNotification().feedback(
-      //   //   context,
-      //   //   genericFeedbackStyle(
-      //   //     Languages.of(context)?.noInternetConnection,
-      //   //     Languages.of(context)?.checkInternet,
-      //   //     no_internet,
-      //   //   ),
-      //   // );
-      // }
-    } catch (exception) {
-      // // only executed if error is of type Exception
-      // FeedbackNotification().feedback(
-      //   context,
-      //   genericFeedbackStyle(
-      //     Languages.of(context)?.somethingWrong,
-      //     exception.message.toString(),
-      //     something_went_wrong_image,
-      //   ),
-      // );
+    } catch (e) {
+      EasyLoading.dismiss();
+      debugPrint("======Error: ${e}=======");
     }
-
     return "";
   }
   Future postApiData2(
@@ -368,7 +276,7 @@ class ApiProvider {
     try {
       if (await checkInternetConnection()) {
         if (showLoader) showCustomLoader();
-        var headers = await getApiHeaders(isAuth);
+        var headers = await getApiHeaders();
         var request = http.Request(
             RequestMethod.post.name, Uri.parse(Apis.baseUrl + url));
         request.body = json.encode(bodyData);
@@ -486,213 +394,11 @@ class ApiProvider {
     return "";
   }
 
-  putApiData(
-      {isAuth = true,
-      bool showLoader = true,
-      bool showSuccess = true,
-      String successMsg = ""}) async {
-    try {
-      if (await checkInternetConnection()) {
-        if (showLoader) showCustomLoader();
-        var headers = await getApiHeaders(isAuth);
-        var request =
-            http.Request(RequestMethod.put.name, Uri.parse(Apis.baseUrl + url));
 
-        print(json.encode(bodyData));
-        print("///////////");
-        print(bodyData);
-        request.body = json.encode(bodyData);
-        request.headers.addAll(headers);
 
-        http.StreamedResponse response = await request.send();
-        EasyLoading.dismiss();
-        if (response.statusCode == 200) {
-          if (showSuccess) {
-            await CustomDialog(
-              stylishDialogType: StylishDialogType.SUCCESS,
-              msg: successMsg,
-            ).show();
-          }
 
-          // var success =
-          //     jsonDecode(await response.stream.bytesToString())['success'];
-          // var error =
-          //     jsonDecode(await response.stream.bytesToString())['error'];
-          // var message =
-          //     jsonDecode(await response.stream.bytesToString())['message'];
-          //
-          // if (success) {
-          return await response.stream.bytesToString();
-        }
-        // else if (error) {
-        //     FeedbackNotification().feedback(
-        //       context,
-        //       genericFeedbackStyle(
-        //         Languages.of(context)?.somethingWrong,
-        //         message,
-        //         something_went_wrong_image,
-        //       ),
-        //     );
-        //   }
-        //}
-        else if (response.statusCode == 401) {
-          //TODO:: show dialog
-          // FeedbackNotification().feedback(
-          //   context,
-          //   genericFeedbackStyle(
-          //     Languages.of(context)?.unauthorized,
-          //     Languages.of(context)?.sessionExpired,
-          //     alert,
-          //     true,
-          //   ),
-          // );
-        } else {
-          var message =
-              jsonDecode(await response.stream.bytesToString())['message'];
 
-          if (message != null && message.toString().isNotEmpty) {
-            //TODO:: show dialog
-            // FeedbackNotification().feedback(
-            //   context,
-            //   genericFeedbackStyle(
-            //     Languages.of(context)?.somethingWrong,
-            //     message,
-            //     something_went_wrong_image,
-            //   ),
-            // );
-          } else {
-            //TODO:: show dialog
-            // FeedbackNotification().feedback(
-            //   context,
-            //   genericFeedbackStyle(
-            //     Languages.of(context)?.somethingWrong,
-            //     response.reasonPhrase,
-            //     something_went_wrong_image,
-            //   ),
-            // );
-          }
-        }
-      } else {
-        //TODO:: show dialog
-        // FeedbackNotification().feedback(
-        //   context,
-        //   genericFeedbackStyle(
-        //     Languages.of(context)?.noInternetConnection,
-        //     Languages.of(context)?.checkInternet,
-        //     no_internet,
-        //   ),
-        // );
-      }
-    } catch (exception) {
-      // // only executed if error is of type Exception
-      // FeedbackNotification().feedback(
-      //   context,
-      //   genericFeedbackStyle(
-      //     Languages.of(context)?.somethingWrong,
-      //     exception.message.toString(),
-      //     something_went_wrong_image,
-      //   ),
-      // );
-    }
-
-    return "";
-  }
-
-  deleteApiData(
-      {isAuth = true,
-      bool showLoader = true,
-      bool showSuccess = true,
-      String successMsg = "Players Delete Successfully"}) async {
-    try {
-      if (await checkInternetConnection()) {
-        if (showLoader) showCustomLoader();
-        var headers = await getApiHeaders(isAuth);
-        var request = http.Request(
-            RequestMethod.delete.name, Uri.parse(Apis.baseUrl + url));
-        request.body = json.encode(bodyData);
-        request.headers.addAll(headers);
-
-        http.StreamedResponse response = await request.send();
-        EasyLoading.dismiss();
-        print("=========response.statusCode:${response.statusCode}======");
-
-        if (response.statusCode == 200) {
-          if (showSuccess) {
-            await CustomDialog(
-              stylishDialogType: StylishDialogType.SUCCESS,
-              msg: successMsg,
-            ).show();
-          }
-
-          return await response.stream.bytesToString();
-        } else if (response.statusCode == 401) {
-          //TODO:: show dialog
-          // FeedbackNotification().feedback(
-          //   context,
-          //   genericFeedbackStyle(
-          //     Languages.of(context)?.unauthorized,
-          //     Languages.of(context)?.sessionExpired,
-          //     alert,
-          //     true,
-          //   ),
-          // );
-        } else {
-          var message =
-              jsonDecode(await response.stream.bytesToString())['message'];
-
-          if (message != null && message.toString().isNotEmpty) {
-            //TODO:: show dialog
-            // FeedbackNotification().feedback(
-            //   context,
-            //   genericFeedbackStyle(
-            //     Languages.of(context)?.somethingWrong,
-            //     message,
-            //     something_went_wrong_image,
-            //   ),
-            // );
-          } else {
-            // FeedbackNotification().feedback(
-            //   context,
-            //   genericFeedbackStyle(
-            //     Languages.of(context)?.somethingWrong,
-            //     response.reasonPhrase,
-            //     something_went_wrong_image,
-            //   ),
-            // );
-          }
-        }
-      } else {
-        // FeedbackNotification().feedback(
-        //   context,
-        //   genericFeedbackStyle(
-        //     Languages.of(context)?.noInternetConnection,
-        //     Languages.of(context)?.checkInternet,
-        //     no_internet,
-        //   ),
-        // );
-      }
-    } catch (exception) {
-      // // only executed if error is of type Exception
-      // FeedbackNotification().feedback(
-      //   context,
-      //   genericFeedbackStyle(
-      //     Languages.of(context)?.somethingWrong,
-      //     exception.message.toString(),
-      //     something_went_wrong_image,
-      //   ),
-      // );
-    }
-
-    return "";
-  }
-
-  Future<Map<String, String>> getApiHeaders(bool isAuth) async {
-    final String? token = await Preferences.getUserToken();
-
-    // return {
-    //   'Content-Type': 'application/json',
-    //   'Authorization': isAuth ? token ?? "" : "",
-    // };
+  Future<Map<String, String>> getApiHeaders() async {
     return {
       'Accept': '',
       'Content-Type': 'application/json'

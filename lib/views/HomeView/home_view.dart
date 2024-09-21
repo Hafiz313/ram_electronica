@@ -1,5 +1,6 @@
 
 import 'dart:async';
+import 'package:http/http.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -35,9 +36,11 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
 
   final Stopwatch _stopwatch = Stopwatch();
+  final Stopwatch _stopwatchBreak = Stopwatch();
   late Timer _timer;
+  late Timer _timerBreak;
   String elapsedTime = "00:00:00";
-  bool loading =false;
+  String breakTime = "00:00:00";
   final box=GetStorage();
    int status= 0;
   @override
@@ -52,7 +55,7 @@ class _HomeViewState extends State<HomeView> {
     final read = context.read<HomeViewModel>();
     return WillPopScope(
       onWillPop: () async => true,
-      child: loading?const Center(child: CircularProgressIndicator()):  BaseScaffold(
+      child: context.read<HomeViewModel>().loading?const Center(child: CircularProgressIndicator()):  BaseScaffold(
         showBackButton:true,
         body: SingleChildScrollView(
           child: Column(
@@ -83,13 +86,18 @@ class _HomeViewState extends State<HomeView> {
                             subText2('${box.read(kName)}',color: AppColors.white),
                           ],
                         ),
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: AppColors.bellBgColor,
-                              borderRadius: BorderRadius.circular(10)
-                            ),
-                            child: Image.asset(AppAssets.bell))
+                        InkWell(
+                          onTap: (){
+                            debugPrint("=========token:${GetStorage().read(kToken)}=================");
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: AppColors.bellBgColor,
+                                borderRadius: BorderRadius.circular(10)
+                              ),
+                              child: Image.asset(AppAssets.bell)),
+                        )
                       ],
                     ),
                     SizedBox(height: context.percentHeight * 3.0,),
@@ -130,7 +138,6 @@ class _HomeViewState extends State<HomeView> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
-                  // status ==0?"0":status ==1?"0.2":"0.7 ",
                   elapsedTime,
                   style:
                   const TextStyle(fontWeight: FontWeight.bold, fontSize: 20.0,color: AppColors.textColor),
@@ -162,7 +169,7 @@ class _HomeViewState extends State<HomeView> {
               padding: EdgeInsets.symmetric(horizontal: context.percentWidth * 7),
               child: Row(
                 children: [
-                  if(status==0)
+                  if(status==0 || status==4)
                   startBtn(context)
                    else if(status==1)
                      pauseBtn(context)
@@ -180,10 +187,15 @@ class _HomeViewState extends State<HomeView> {
                         context.read<HomeViewModel>().checkout(callBack: (isSuccess) {
                           if (isSuccess) {
                             setState(() {
-                              status=0;
+                              status=4;
                               _stopwatch.stop();
+                              _stopwatchBreak.stop();
                               _timer.cancel();
+                              _timerBreak.cancel();
                             });
+
+                            checkStateOfApp();
+
 
                           }
                         });
@@ -215,24 +227,26 @@ class _HomeViewState extends State<HomeView> {
                 Expanded(child:
                 Column(children: [
                   Image.asset(AppAssets.checkInIcon),
-                  if(context.read<HomeViewModel>().response.currentWorkingHours!.isNotEmpty)
-                  subText2(context.read<HomeViewModel>().response.currentWorkingHours![0].checkInTime??"-- : --"),
+                  (context.read<HomeViewModel>().response.currentWorkingHours!.isNotEmpty)?
+                  subText2(context.read<HomeViewModel>().response.currentWorkingHours![0].checkInTime??"-- : --"):
+                  subText2("-- : --"),
                   subText2(Lang.checkIn),
 
                 ],)),
                 Expanded(child:
                 Column(children: [
                   Image.asset(AppAssets.checkOutIcon),
-                  if(context.read<HomeViewModel>().response.currentWorkingHours!.isNotEmpty)
-                  subText2(context.read<HomeViewModel>().response.currentWorkingHours![0].checkOutTime??"-- : --"),
+                  (context.read<HomeViewModel>().response.currentWorkingHours!.isNotEmpty)?
+                  subText2(context.read<HomeViewModel>().response.currentWorkingHours![0].checkOutTime??"-- : --"):
+                  subText2("-- : --"),
                   subText2(Lang.checkOut),
 
                 ],)),
-                if(status ==2)
+                if(status ==2 || status==4)
                 Expanded(child:
                 Column(children: [
                   Image.asset(AppAssets.breakIcon),
-                  subText2(context.read<HomeViewModel>().response.currentWorkingHours![0].breakStartTime??"-- : --"),
+                  subText2("${breakTime}"),
                   subText2(Lang.breakTime),
 
                 ],)),
@@ -369,7 +383,9 @@ class _HomeViewState extends State<HomeView> {
 
           context.read<HomeViewModel>().breakStart(callBack: (isSuccess) {
             if (isSuccess) {
+              startBreakTimer();
               checkStateOfApp();
+
             }
           });
 
@@ -430,9 +446,21 @@ class _HomeViewState extends State<HomeView> {
       });
     });
   }
+  void startBreakTimer() {
+    _stopwatchBreak.start();
+    _timerBreak = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        breakTime = formatElapsedTime( _stopwatchBreak.elapsed);
+      });
+    });
+  }
   void stopTimer() {
     _stopwatch.stop();
     _timer.cancel();
+  }
+  void stopBreakTimer() {
+    _stopwatchBreak.stop();
+    _timerBreak.cancel();
   }
   String formatElapsedTime(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, "0");
@@ -444,54 +472,60 @@ class _HomeViewState extends State<HomeView> {
   @override
   void dispose() {
     _timer.cancel();
+    _timerBreak.cancel();
     super.dispose();
   }
 
   Future<void> checkStateOfApp() async {
    final read= context.read<HomeViewModel>();
+   try {
+     await  read.getCurrentHours(callBack: (isSuccess) {
+       if(read.response.currentWorkingHours!.isEmpty){
 
-   // setState(() {
-   //   loading =true;
-   // });
- await  read.getCurrentHours(callBack: (isSuccess) {
+         debugPrint("====qqqq=====1111==========");
+         setState(() {
+           _stopwatch.stop();
+           _stopwatchBreak.stop();
+           _timer.cancel();
+           _timer.cancel();
+           elapsedTime = "00:00:00";
+           breakTime = "00:00:00";
+           status =0;
+         });
+       }
+       else if(read.response.currentWorkingHours![0].statusState==0){
+         debugPrint("====qqqq=====2222==========");
+         setState(() {
+           status =1;
+         });
+         calculateTime();
+       }
+       else if(read.response.currentWorkingHours![0].statusState==1){
+         debugPrint("====qqqq=====3333==========");
+         setState(() {
+           status =2;
+         });
+         calculateTime();
 
-     debugPrint("===token: ${GetStorage().read(kToken)}=======");
-     if(read.response.currentWorkingHours!.isEmpty){
-       debugPrint("====1111=ffffffff: ${status}=======");
-       setState(() {
-         _stopwatch.stop();
-         _timer.cancel();
-         elapsedTime = "00:00:00";
-         status =0;
-       });
-     }
-     else if(read.response.currentWorkingHours![0].statusState==0){
-       debugPrint("====222=ffffffff: ${status}=======");
-       setState(() {
-         status =1;
-       });
-      calculateTime();
-     }
-     else if(read.response.currentWorkingHours![0].statusState==1){
-       debugPrint("====333=ffffffff: ${status}=======");
-       calculateTime();
-       setState(() {
-         _stopwatch.stop();
-         _timer.cancel();
-         status =2;
-       });
-     }
-     else if(read.response.currentWorkingHours![0].statusState==2){
-       debugPrint("====333=ffffffff: ${status}=======");
-       calculateTime();
-       setState(() {
-         status =1;
-       });
-     }
-    });
-   setState(() {
-     loading =false;
-   });
+       }
+       else if(read.response.currentWorkingHours![0].statusState==2){
+         debugPrint("====qqqq=====44444==========");
+         calculateTime();
+         setState(() {
+           status =1;
+         });
+       }
+
+     });
+   }
+   catch(e){
+     setState(() {
+       read.loading =false;
+     });
+
+   }
+
+
   }
 
   void calculateTime() {
@@ -501,14 +535,12 @@ class _HomeViewState extends State<HomeView> {
     int minutes = int.parse(timeParts[1]);
     int seconds = int.parse(timeParts[2]);
     DateTime givenTime = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, hours, minutes, seconds);
-    debugPrint("=====givenTime: ${givenTime}=======");
     String currentTimeApi= "${context.read<HomeViewModel>().response.currentTime}";
     List<String> currentTimeParts = currentTimeApi.split(":");
     int currentHours = int.parse(currentTimeParts[0]);
     int currentMinutes = int.parse(currentTimeParts[1]);
     int currentSeconds = int.parse(currentTimeParts[2]);
     DateTime currentTime = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, currentHours, currentMinutes, currentSeconds);
-    debugPrint("=====currentTime: ${currentTime}=======");
     Duration difference = currentTime.difference(givenTime);
     if (difference.isNegative) {
       difference = givenTime.difference(currentTime);
@@ -523,8 +555,38 @@ class _HomeViewState extends State<HomeView> {
         elapsedTime = formatElapsedTime(adjustedElapsedTime);
       });
     });
-    setState(() {
-      loading =false;
+
+  }
+
+  void calculateBreakTime() {
+    String checkInString = "${context.read<HomeViewModel>().response.currentWorkingHours![0].breakStartTime}";
+    List<String> timeParts = checkInString.split(":");
+    int hours = int.parse(timeParts[0]);
+    int minutes = int.parse(timeParts[1]);
+    int seconds = int.parse(timeParts[2]);
+    DateTime givenTime = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, hours, minutes, seconds);
+    // debugPrint("=====givenTime: ${givenTime}=======");
+    String currentTimeApi= "${context.read<HomeViewModel>().response.currentTime}";
+    List<String> currentTimeParts = currentTimeApi.split(":");
+    int currentHours = int.parse(currentTimeParts[0]);
+    int currentMinutes = int.parse(currentTimeParts[1]);
+    int currentSeconds = int.parse(currentTimeParts[2]);
+    DateTime currentTime = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, currentHours, currentMinutes, currentSeconds);
+    // debugPrint("=====currentTime: ${currentTime}=======");
+    Duration difference = currentTime.difference(givenTime);
+    if (difference.isNegative) {
+      difference = givenTime.difference(currentTime);
+      print('Time difference: ${difference.inSeconds} seconds from now');
+    } else {
+      print('Time difference: ${difference.inSeconds} seconds ago');
+    }
+    _stopwatchBreak.start();
+    _timerBreak = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        Duration adjustedElapsedTime = _stopwatchBreak.elapsed + Duration(seconds: difference.inSeconds);
+        breakTime = formatElapsedTime(adjustedElapsedTime);
+      });
     });
+
   }
 }

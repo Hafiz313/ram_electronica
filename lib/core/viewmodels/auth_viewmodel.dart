@@ -67,41 +67,7 @@ class AuthViewModel extends BaseViewModel {
 
 
 
-  // Future<void> logOut(context) async {
-  //   await Preferences.deleteUserToken();
-  //   // Navigator.pushNamedAndRemoveUntil(
-  //   //   context,
-  //   //   LoginView.routeName,
-  //   //   ModalRoute.withName('/'),
-  //   // );
-  //   var url = Apis.logoutApi;
-  //   int? userId = await Preferences.getUserID();
-  //   var helper = ApiProvider(navigate.currentContext, url, {
-  //     'id': "$userId",
-  //   });
-  //   await helper
-  //       .putApiData(
-  //     isAuth: true,
-  //     showSuccess: false,
-  //   ).then(
-  //         (res) async {
-  //
-  //       // if (!isNullString(res)) {
-  //       //
-  //       //   } else {
-  //       //     Fluttertoast.showToast(
-  //       //         msg: "Invalid Token, Please login again",
-  //       //         toastLength: Toast.LENGTH_SHORT,
-  //       //         gravity: ToastGravity.SNACKBAR,
-  //       //         timeInSecForIosWeb: 2,
-  //       //         backgroundColor: Colors.red,
-  //       //         textColor: Colors.white,
-  //       //         fontSize: 16.0);
-  //       //   }
-  //       // }
-  //     },
-  //   );
-  // }
+
 
   Future<void> saveUserInfo({required LoginResponse response}) async {
     await Preferences.setUserToken(response.user!.token!);
@@ -182,9 +148,7 @@ class AuthViewModel extends BaseViewModel {
       {
         required Function(bool) callBack}) async {
     var url = Apis.logOutApi;
-    var helper = ApiProvider(navigate.currentContext, url, {
-
-    });
+    var helper = ApiProvider(navigate.currentContext, url, {});
     await helper.postApiData(
       isAuth: true,
       showSuccess: false,
@@ -233,7 +197,8 @@ class AuthViewModel extends BaseViewModel {
       {required String email,
         required Function(bool) callBack}) async {
     var url = Apis.forgetPasswordApi;
-    var helper = ApiProvider(navigate.currentContext, url, {'email': email});
+    // var helper = ApiProvider(navigate.currentContext, url, {'email': email});
+    var helper = ApiProvider(navigate.currentContext, url, {'email': "m.shhaid3313@gmail.come"});
     await helper
         .postApiData(
       isAuth: true,

@@ -77,7 +77,7 @@ class _BaseScaffoldAuthState extends State<BaseScaffoldAuth> {
                ),
              ],
            ),
-            widget.body!,
+            Expanded(child: widget.body!),
           ],
         )
 
