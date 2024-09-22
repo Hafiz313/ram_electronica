@@ -1,4 +1,5 @@
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -271,6 +272,38 @@ class HomeViewModel extends BaseViewModel {
 
     notifyListeners();
   }
+
+  //Timers work
+  Timer? _timer;
+  int _seconds = 0;
+  bool _isPaused = true;
+
+  int get seconds => _seconds;
+  bool get isPaused => _isPaused;
+  void startTimer() {
+    if (_timer == null || !_timer!.isActive) {
+      _isPaused = false;
+      _timer = Timer.periodic(Duration(seconds: 1), (Timer timer) {
+        _seconds++;
+        notifyListeners();
+      });
+    }
+  }
+  void pauseTimer() {
+    _isPaused = true;
+    _timer?.cancel();
+    notifyListeners();
+  }
+
+  void resetTimer() {
+    _isPaused = true;
+    _timer?.cancel();
+    _seconds = 0;
+    notifyListeners();
+  }
+
+
+
 }
 
 

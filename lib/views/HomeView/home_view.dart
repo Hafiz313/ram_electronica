@@ -193,10 +193,7 @@ class _HomeViewState extends State<HomeView> {
                               _timer.cancel();
                               _timerBreak.cancel();
                             });
-
                             checkStateOfApp();
-
-
                           }
                         });
                       },
@@ -380,12 +377,11 @@ class _HomeViewState extends State<HomeView> {
     return  Expanded(
       child: InkWell(
         onTap: (){
-
+          startBreakTimer();
           context.read<HomeViewModel>().breakStart(callBack: (isSuccess) {
             if (isSuccess) {
-              startBreakTimer();
-              checkStateOfApp();
 
+              checkStateOfApp();
             }
           });
 
